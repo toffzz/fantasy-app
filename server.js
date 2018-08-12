@@ -6,6 +6,7 @@ const cheerio = require('cheerio');
 const request = require('request');
 const _ = require('lodash')
 const csv = require('csvtojson')
+const cors = require('cors')
 
 const processName = (name) => {
   const splitName = name === undefined ? [] : name.split(' ')
@@ -25,12 +26,13 @@ const processName = (name) => {
 }
 
 app.use(express.static('public'))
+app.use(cors())
 
 // console.log that your server is up and running
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
 // create a GET route
-app.get('/fantasypros/:type', (req, res) => {
+app.get('/fantasypros/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }), (req, res) => {
   const fpUrls = {
     hppr: 'https://www.fantasypros.com/nfl/adp/half-point-ppr-overall.php',
     ppr: 'https://www.fantasypros.com/nfl/adp/ppr-overall.php'
@@ -44,7 +46,7 @@ app.get('/fantasypros/:type', (req, res) => {
 
 });
 
-app.get('/fantasyfootballers/:type', (req, res) => {
+app.get('/fantasyfootballers/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }),(req, res) => {
   const ffbPaths = {
     hppr: 'public/fantasyfootballers/hppr.csv',
     ppr: 'public/fantasyfootballers/ppr.csv'
@@ -65,7 +67,7 @@ app.get('/fantasyfootballers/:type', (req, res) => {
   })
 })
 
-app.get('/espn', (req, res) => {
+app.get('/espn', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }), (req, res) => {
   const fs = require('fs');
 
   const processEspnName = (name) => {
