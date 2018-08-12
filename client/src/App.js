@@ -1,44 +1,40 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import set from 'lodash/set';
 
 class App extends Component {
-state = {
-    fantasyPros: null,
-    fantasyFootballers: null
+  state = {
   };
 
   componentDidMount() {
       // Call our fetch function below once the component mounts
-    this.callFantasyPros()
-      .then(res => {
-        //console.log(res)
-        this.setState({ fantasyPros: res.data })
-      })
-      .catch(err => console.log(err));
+    const rankingApis = ['fantasyPros', 'fantasyFootballers']
+    const rankTypes = ['standard', 'hppr', 'ppr']
 
-    this.callFantasyFootballers()
-      .then(res => {
-        //console.log(res)
-        this.setState({ fantasyFootballers: res.data })
+    rankTypes.forEach((rankType) => {
+      rankingApis.forEach((api) => {
+        this.fetchApi(api, rankType)
+          .then(res => {
+            this.setState(prevState => {
+              let apiObj = prevState || prevState[rankType] || prevState[rankType][api]
+              set(apiObj, [rankType, api], res.data)
+              return apiObj
+            })
+          })
+          .catch(err => console.log(err));
       })
-      .catch(err => console.log(err));
+    })
+
+    this.fetchPredraftRankings().then((rankingsData)=>{
+      this.setState({ predraftRankings: rankingsData.data })
+    })
   }
-    // Fetches our GET route from the Express server. (Note the route we are fetching matches the GET route from server.js
-  /*callBackendAPI = async () => {
-    const response = await fetch('/fantasyfootballers');
-    //const response = await fetch('/fantasypros');
-    const body = await response.json();
 
-    if (response.status !== 200) {
-      throw Error(body.message)
-    }
-    return body;
-  };*/
-
-  callFantasyPros = () => {
+  fetchApi = (baseUrl, type = 'standard') => {
+    baseUrl = baseUrl.toLowerCase()
     return new Promise((resolve) => {
-      fetch('/fantasypros').then((response) => {
+      fetch('/' + baseUrl + '/:' + type).then((response) => {
         const body = response.json()
         if(response.status !== 200) {
           throw Error(body.message)
@@ -48,9 +44,10 @@ state = {
     })
   }
 
-  callFantasyFootballers = () => {
+  fetchPredraftRankings = () => {
+    const baseUrl = 'espn'
     return new Promise((resolve) => {
-      fetch('/fantasyfootballers').then((response) => {
+      fetch('/' + baseUrl + '/').then((response) => {
         const body = response.json()
         if(response.status !== 200) {
           throw Error(body.message)
@@ -61,7 +58,10 @@ state = {
   }
 
   render() {
-    console.log('hey', this.state.fantasyPros ? this.state : false)
+    console.log('hey', this.state.standard ? this.state : false)
+    console.log('hey', this.state.ppr ? this.state : false)
+    console.log('hey', this.state.hppr ? this.state : false)
+    console.log('lala', this.state.predraftRankings ? this.state : "noPredraft")
     return (
       <div className="App">
         <header className="App-header">

@@ -30,46 +30,92 @@ app.use(express.static('public'))
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
 // create a GET route
-app.get('/fantasypros', (req, res) => {
-  request.get('https://www.fantasypros.com/nfl/adp/overall.php', (err, response, body) => {
-    if (err) { return console.log(err); }
-    const $ = cheerio.load(body)
-    let players = []
-    $('table.player-table tbody tr').each((i, element)=>{
-      const obj = {
-        rank: $(element).children('td').eq(0).text().trim(),
-        name: processName($(element).children('td').eq(1).text().trim()),
-        pos: $(element).children('td').eq(2).text().trim()
-      }
-      console.log(obj)
-      players.push(obj)
-    })
+app.get('/fantasypros/:type', (req, res) => {
+  const fpUrls = {
+    hppr: 'https://www.fantasypros.com/nfl/adp/half-point-ppr-overall.php',
+    ppr: 'https://www.fantasypros.com/nfl/adp/ppr-overall.php'
+  }
+
+  const url = fpUrls[req.params.type] ? fpUrls[req.params.type] : 'https://www.fantasypros.com/nfl/adp/overall.php'
+
+  buildFantasyprosRankings(url).then((players) => {
     res.send({ data: players });
-  });
+  })
+
 });
 
-app.get('/fantasyfootballers', (req, res) => {
-  const csvFilePath = 'public/fantasyfootballers/standard.csv'
+app.get('/fantasyfootballers/:type', (req, res) => {
+  const ffbPaths = {
+    hppr: 'public/fantasyfootballers/hppr.csv',
+    ppr: 'public/fantasyfootballers/ppr.csv'
+  }
+
+  let path = ffbPaths[req.params.type] ? ffbPaths[req.params.type] : 'public/fantasyfootballers/standard.csv'
+  let players = []
 
   csv()
-  .fromFile(csvFilePath)
+  .fromFile(path)
   .then((jsonObj)=>{
       jsonObj = JSON.parse(JSON.stringify(jsonObj).replace(/Player Name/g, 'name'))
-      console.log(jsonObj);
-
-      let players = []
       jsonObj.forEach((rank)=>{
-        const obj = {
-          rank: parseInt(rank.Consensus),
-          andyRank: parseInt(rank.Andy),
-          jasonRank: parseInt(rank.Jason),
-          mikeRank: parseInt(rank.Mike),
-          name: processName(rank['name']),
-          pos: rank.pos
-        }
-        players.push(obj)
+        processFfbRankings(rank, players)
       })
 
       res.send({ data: players })
   })
 })
+
+app.get('/espn', (req, res) => {
+  const fs = require('fs');
+
+  const processEspnName = (name) => {
+    const splitName = name.split(',')
+    return splitName[0]
+  }
+
+  fs.readFile('public/espn/draftRankings-10std.html', 'utf8', function (err, data) {
+    if (err) throw err;
+    const $ = cheerio.load(data)
+      let players = []
+    $('.draftListPlayerRow').slice(0,350).each((i, element) => {
+      const obj = {
+        rank: i+1,
+        name: processEspnName($(element).children('.draftListPlayerName').text().trim())
+      }
+      players.push(obj)
+    })
+    res.send({ data: players })
+  });
+})
+
+const processFfbRankings = (rank, array) => {
+  const obj = {
+    rank: parseInt(rank.Consensus),
+    andyRank: parseInt(rank.Andy),
+    jasonRank: parseInt(rank.Jason),
+    mikeRank: parseInt(rank.Mike),
+    name: processName(rank['name']),
+    pos: rank.pos
+  }
+
+  array.push(obj)
+}
+
+const buildFantasyprosRankings = (url) => {
+  return new Promise((resolve)=>{
+    request.get(url, (err, response, body) => {
+      if (err) { return console.log(err); }
+      const $ = cheerio.load(body)
+      let players = []
+      $('table.player-table tbody tr').each((i, element)=>{
+        const obj = {
+          rank: $(element).children('td').eq(0).text().trim(),
+          name: processName($(element).children('td').eq(1).text().trim()),
+          pos: $(element).children('td').eq(2).text().trim()
+        }
+        players.push(obj)
+      })
+      resolve(players)
+    });
+  })
+}
