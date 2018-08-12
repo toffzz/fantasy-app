@@ -32,7 +32,7 @@ app.use(cors())
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
 // create a GET route
-app.get('/fantasypros/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }), (req, res) => {
+app.get('/fantasypros/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com' }), (req, res) => {
   const fpUrls = {
     hppr: 'https://www.fantasypros.com/nfl/adp/half-point-ppr-overall.php',
     ppr: 'https://www.fantasypros.com/nfl/adp/ppr-overall.php'
@@ -46,7 +46,7 @@ app.get('/fantasypros/:type', cors({ origin: 'http://fantasy-thingy.s3-website-u
 
 });
 
-app.get('/fantasyfootballers/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }),(req, res) => {
+app.get('/fantasyfootballers/:type', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com' }),(req, res) => {
   const ffbPaths = {
     hppr: 'public/fantasyfootballers/hppr.csv',
     ppr: 'public/fantasyfootballers/ppr.csv'
@@ -67,7 +67,7 @@ app.get('/fantasyfootballers/:type', cors({ origin: 'http://fantasy-thingy.s3-we
   })
 })
 
-app.get('/espn', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com/' }), (req, res) => {
+app.get('/espn', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com' }), (req, res) => {
   const fs = require('fs');
 
   const processEspnName = (name) => {
