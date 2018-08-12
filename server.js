@@ -70,7 +70,8 @@ app.get('/espn', (req, res) => {
 
   const processEspnName = (name) => {
     const splitName = name.split(',')
-    return splitName[0]
+
+    return splitName[0].split('*')[0]
   }
 
   fs.readFile('public/espn/draftRankings-10std.html', 'utf8', function (err, data) {
@@ -89,12 +90,15 @@ app.get('/espn', (req, res) => {
 })
 
 const processFfbRankings = (rank, array) => {
+  let ffbName = processName(rank['name'])
+  ffbName = fantasyFootballersNameReplace[ffbName] ? fantasyFootballersNameReplace[ffbName] : ffbName
+
   const obj = {
     rank: parseInt(rank.Consensus),
     andyRank: parseInt(rank.Andy),
     jasonRank: parseInt(rank.Jason),
     mikeRank: parseInt(rank.Mike),
-    name: processName(rank['name']),
+    name: ffbName,
     pos: rank.pos
   }
 
@@ -108,9 +112,14 @@ const buildFantasyprosRankings = (url) => {
       const $ = cheerio.load(body)
       let players = []
       $('table.player-table tbody tr').each((i, element)=>{
+        let name = processName($(element).children('td').eq(1).text().trim())
+        if(name.indexOf('Jaguars') > -1){
+          console.log("THIS IS JAGUARS NAME", name)
+        }
+        name = fantasyProsNameReplace[name] ? fantasyProsNameReplace[name] : name
         const obj = {
           rank: $(element).children('td').eq(0).text().trim(),
-          name: processName($(element).children('td').eq(1).text().trim()),
+          name: name,
           pos: $(element).children('td').eq(2).text().trim()
         }
         players.push(obj)
@@ -118,4 +127,49 @@ const buildFantasyprosRankings = (url) => {
       resolve(players)
     });
   })
+}
+
+const fantasyProsNameReplace = {
+  'Todd Gurley': 'Todd Gurley II',
+  'Marvin Jones': 'Marvin Jones Jr.',
+  'Ronald Jones II': 'Ronald Jones',
+  'Mark Ingram': 'Mark Ingram II',
+  'Duke Johnson': 'Duke Johnson Jr.',
+  'Will Fuller': 'Will Fuller V',
+  'D.J. Moore': 'DJ Moore',
+  'Robert Kelley': 'Rob Kelley',
+  'Jacksonville Jaguars': 'Jaguars D/ST',
+  'Mitch Trubisky': 'Mitchell Trubisky',
+  'Philadelphia Eagles': 'Eagles D/ST',
+  'Los Angeles Rams': 'Rams D/ST',
+  'Minnesota Vikings': 'Vikings D/ST',
+  'Houston Texans': 'Texans D/ST',
+  'Los Angeles Rams': 'Rams D/ST',
+  'Baltimore Ravens': 'Ravens D/ST',
+  'New England Patriots': 'Patriots D/ST',
+  'Los Angeles Chargers': 'Chargers D/ST',
+  'Denver Broncos': 'Broncos D/ST',
+  'New Orleans Saints': 'Saints D/ST',
+  'Tennessee Titans': 'Titans D/ST',
+  'Carolina Panthers': 'Panthers D/ST',
+  'Ted Ginn': 'Ted Ginn Jr.',
+  'Washington Redskins': 'Redskins D/ST',
+  'Arizona Cardinals': 'Cardinals D/ST',
+  'Atlanta Falcons': 'Falcons D/ST',
+  'Dallas Cowboys': 'Cowboys D/ST'
+}
+
+const fantasyFootballersNameReplace = {
+  'LeVeon Bell': 'Le\'Veon Bell',
+  'Todd Gurley': 'Todd Gurley II',
+  'Odell Beckham Jr': 'Odell Beckham Jr.',
+  'Marvin Jones': 'Marvin Jones Jr.',
+  'Ronald Jones II': 'Ronald Jones',
+  'Mark Ingram': 'Mark Ingram II',
+  'Duke Johnson': 'Duke Johnson Jr.',
+  'Will Fuller': 'Will Fuller V',
+  'D.J. Moore': 'DJ Moore',
+  'Jack Doyle': 'Jack Doyle',
+  'CJ Anderson': 'C.J. Anderson',
+  'Mitch Trubisky': 'Mitchell Trubisky'
 }
