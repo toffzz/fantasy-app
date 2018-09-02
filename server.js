@@ -134,7 +134,7 @@ const buildFantasyprosRankings = (url) => {
       const $ = cheerio.load(body)
       let players = []
       $('table.player-table tbody tr').each((i, element)=>{
-        let name = processName($(element).children('td').eq(1).text().trim())
+        let name = $(element).children('td').eq(1).children('.player-name').text().trim()
         if(name.indexOf('Jaguars') > -1){
           console.log("THIS IS JAGUARS NAME", name)
         }
@@ -193,7 +193,8 @@ const fantasyFootballersNameReplace = {
   'D.J. Moore': 'DJ Moore',
   'Jack Doyle': 'Jack Doyle',
   'CJ Anderson': 'C.J. Anderson',
-  'Mitch Trubisky': 'Mitchell Trubisky'
+  'Mitch Trubisky': 'Mitchell Trubisky',
+  'Ted Ginn': 'Ted Ginn Jr.'
 }
 
 const fleaflickerNameReplace = {
