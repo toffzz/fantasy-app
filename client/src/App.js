@@ -46,6 +46,10 @@ class App extends Component {
     return urlParams.get('type')
   }
 
+  getPlatform(){
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('platform')
+  }
   fetchApi = (baseUrl, type = 'standard') => {
     baseUrl = baseUrl.toLowerCase()
     return new Promise((resolve) => {
@@ -60,9 +64,12 @@ class App extends Component {
   }
 
   fetchPredraftRankings = () => {
-    const baseUrl = 'espn'
+    let baseUrl = 'espn'
+    if(this.getPlatform() === 'fleaflicker'){
+      baseUrl = 'fleaflicker'
+    }
     return new Promise((resolve) => {
-      fetch('/' + baseUrl + '/').then((response) => {
+        fetch('/' + baseUrl + '/').then((response) => {
         const body = response.json()
         if(response.status !== 200) {
           throw Error(body.message)
