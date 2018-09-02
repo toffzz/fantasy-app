@@ -91,6 +91,30 @@ app.get('/espn', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amaz
   });
 })
 
+app.get('/fleaflicker', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com' }), (req, res) => {
+  const fs = require('fs');
+
+/*  const processEspnName = (name) => {
+    const splitName = name.split(',')
+
+    return splitName[0].split('*')[0]
+  }*/
+
+  fs.readFile('public/fleaflicker/rankings.html', 'utf8', function (err, data) {
+    if (err) throw err;
+    const $ = cheerio.load(data)
+      let players = []
+    $('.player-text').slice(0,350).each((i, element) => {
+      const obj = {
+        rank: i+1,
+        name: $(element).text().trim()
+      }
+      players.push(obj)
+    })
+    res.send({ data: players })
+  });
+})
+
 const processFfbRankings = (rank, array) => {
   let ffbName = processName(rank['name'])
   ffbName = fantasyFootballersNameReplace[ffbName] ? fantasyFootballersNameReplace[ffbName] : ffbName
