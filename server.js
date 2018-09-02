@@ -94,20 +94,16 @@ app.get('/espn', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amaz
 app.get('/fleaflicker', cors({ origin: 'http://fantasy-thingy.s3-website-us-east-1.amazonaws.com' }), (req, res) => {
   const fs = require('fs');
 
-/*  const processEspnName = (name) => {
-    const splitName = name.split(',')
-
-    return splitName[0].split('*')[0]
-  }*/
-
   fs.readFile('public/fleaflicker/rankings.html', 'utf8', function (err, data) {
     if (err) throw err;
     const $ = cheerio.load(data)
       let players = []
     $('.player-text').slice(0,350).each((i, element) => {
+      let name = $(element).text().trim()
+      name = fleaflickerNameReplace[name] ? fleaflickerNameReplace[name] : name
       const obj = {
         rank: i+1,
-        name: $(element).text().trim()
+        name: name
       }
       players.push(obj)
     })
@@ -198,4 +194,31 @@ const fantasyFootballersNameReplace = {
   'Jack Doyle': 'Jack Doyle',
   'CJ Anderson': 'C.J. Anderson',
   'Mitch Trubisky': 'Mitchell Trubisky'
+}
+
+const fleaflickerNameReplace = {
+  'Todd Gurley': 'Todd Gurley II',
+  "Odell Beckham": 'Odell Beckham Jr.',
+  "Marvin Jones": 'Marvin Jones Jr.',
+  "Mark Ingram": 'Mark Ingram II',
+  "Will Fuller": 'Will Fuller V',
+  "Duke Johnson": 'Duke Johnson Jr.',
+  "D.J. Moore": 'DJ Moore',
+  "Jacksonville Jaguars": 'Jaguars D/ST',
+  "Minnesota Vikings": 'Vikings D/ST',
+  "Los Angeles Rams": 'Rams D/ST',
+  "Philadelphia Eagles": 'Eagles D/ST',
+  "Los Angeles Chargers": 'Chargers D/ST',
+  "Ted Ginn": 'Ted Ginn Jr.',
+  "Houston Texans": 'Texans D/ST',
+  "Denver Broncos": 'Broncos D/ST',
+  "Baltimore Ravens": 'Ravens D/ST',
+  "New Orleans Saints": 'Saints D/ST',
+  "New England Patriots": 'Patriots D/ST',
+  "Carolina Panthers": 'Panthers D/ST',
+  "Atlanta Falcons": 'Falcons D/ST',
+  "Arizona Cardinals": 'Cardinals D/ST',
+  "Tennessee Titans": 'Titans D/ST',
+  "Washington Redskins": 'Redskins D/ST',
+  "Dallas Cowboys": 'Cowboys D/ST'
 }
